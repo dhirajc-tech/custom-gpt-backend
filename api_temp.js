@@ -23,7 +23,9 @@ async function createThread() {
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
-
+function postProcessResponse(response) {
+  return response.replace(/For more detailed information, you can refer to the file .*?\./gi, '');
+}
 async function retrieveRun(threadId, runId) {
   while (true) {
     const keepRetrievingRun = await openai.beta.threads.runs.retrieve(
@@ -46,9 +48,7 @@ async function retrieveRun(threadId, runId) {
   return null;
 }
 
-function postProcessResponse(response) {
-  return response.replace(/For more detailed information, you can refer to the file .*?\./gi, '');
-}
+
 
 app.post('/ask', async (req, res) => {
   const userInput = req.body.prompt;
