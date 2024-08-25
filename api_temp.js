@@ -46,6 +46,10 @@ async function retrieveRun(threadId, runId) {
   return null;
 }
 
+function postProcessResponse(response) {
+  return response.replace(/For more detailed information, you can refer to the file .*?\./gi, '');
+}
+
 app.post('/ask', async (req, res) => {
   const userInput = req.body.prompt;
 
@@ -66,14 +70,15 @@ app.post('/ask', async (req, res) => {
 
     const myRun = await openai.beta.threads.runs.create(myThread.id, {
       assistant_id: assistantID,
-      instructions: "Do not mention the source PDF in your responses",
+      instructions: "Answer the user's question directly and concisely. Do not reference any files, documents, or sources. Provide information based solely on the content provided in the user input.",
     });
 
     await sleep(15000);
 
-    const response = await retrieveRun(myThread.id, myRun.id);
+    let response = await retrieveRun(myThread.id, myRun.id);
 
     if (response) {
+      response = postProcessResponse(response);
       res.send({ response });
     } else {
       res.status(500).send({ error: 'Failed to retrieve response' });
